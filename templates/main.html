@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+    <title>Da Vinci's Art Tools Catalogue</title>
+    <body>
+        <h1>{{category}}</h1>
+
+            {%for c in category%}
+
+        <div>
+            <p>{{c.id}}</p>
+            <p>{{c.category_name}}</p>
+        </div>
+
+        {% endfor %}
+    </body>
+</html>
