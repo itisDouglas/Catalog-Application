@@ -13,6 +13,7 @@ class Category(Base):
     # defining Category table columns
     # this is my id column
     id = Column(Integer, primary_key=True)
+    categories = relationship("Item")
     # this is my category name column
     # holds up to 100 characters and MUST have a value
     # can't be null
@@ -23,9 +24,9 @@ class Item(Base):
     id = Column(Integer, primary_key=True)
     item_name = Column(String(100), nullable=False)
     description = Column(String(500), nullable=False)
-    category_id_key = Column(Integer, ForeignKey("category.id"))
+    category_id = Column(Integer, ForeignKey('category.id'))
 
-    category_id = relationship("Category", foreign_keys=[category_id_key])
+    #category_id = relationship("Category", foreign_keys=[category_id_key])
 
 
 """ Instantiate create_engine object. Pass as argument the file name"""
