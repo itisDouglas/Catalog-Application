@@ -23,12 +23,14 @@ session = DBSession()
 @app.route('/categories/')
 def categoryMenu():
     categories = session.query(Category).all()
+    return render_template('main.html',categories=categories)
     #items = session.query(Item).all()
-    output = ''
-    for i in categories:
-        output += i.category_name
-        output += '</br>'
-    return output
+    # output = ''
+    # for i in categories:
+    #     output += i.category_name
+    #     output += '</br>'
+    # return output
+    
     
     #return 'This displays my entire menu of art tools'
     # category = session.query(Category).filter_by(id = category_id).first()

@@ -1,14 +1,21 @@
 <!doctype html>
 <html>
-    <title>Da Vinci's Art Tools Catalogue</title>
+    <!-- this html file is responsible for the main page -->
+    <!-- in this main page you have the catalog on left hand side. on right hand side you have a column titled "Recent Items" which includes an ordered list of most recently added item to inventory-->
+    <title>Da Vinci's Art Tools Catalog</title>
     <body>
-        <h1>{{category}}</h1>
-
-            {%for c in category%}
+        <div>
+            <h1>Da Vinci's Art Tools Catalog</h1>
+        </div>
+        
+        <h2>{{categories.category_name}}</h2>
+            {# here I'm iterating through each category title#}
+            {%for c in categories%}
 
         <div>
-            <p>{{c.id}}</p>
+        </br>
             <p>{{c.category_name}}</p>
+            
         </div>
 
         {% endfor %}
