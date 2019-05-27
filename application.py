@@ -23,7 +23,8 @@ session = DBSession()
 @app.route('/categories/')
 def categoryMenu():
     categories = session.query(Category).all()
-    return render_template('main.html',categories=categories)
+    items = session.query(Item).all()
+    return render_template('main.html',categories=categories, items=items)
     #items = session.query(Item).all()
     # output = ''
     # for i in categories:

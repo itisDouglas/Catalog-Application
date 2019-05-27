@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <link rel="stylesheet" type="text/css" href="C:\Users\cueva\Pictures\fullstack-nanodegree-vm-master\vagrant\catalog\static\main.css">
+        <title>{% block title %}{% endblock %} Da Vinci's Art Tools Catalog</title>
+        {% endblock %}
+    </head>
+    <body>
+        
+        <div id="header">
+        {%block header%}
+            <h1>Da Vinci's Art Tools Catalog</h1>
+        {% endblock %}
+        </div>
+        
+
+        <div id="content">
+            {% block content%}
+
+            {%endblock%}
+        </div>
+        <div id="footer">
+            {% block footer %}
+            <p>Created by Douglas Cueva</p>
+            {% endblock %}
+        </div>
+    </body>

@@ -1,23 +1,47 @@
+{% extends "base.html" %}
 <!doctype html>
 <html>
+    {% block head %}
+        {{ super() }}
+        <style type="text/css"> #header {text-align: center; background-color: rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif}
+            #footer{text-align: center; background-color:  rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif; }
+            #content{ font-family: Arial, Helvetica, sans-serif; color: #4A4A4A; font-size: large; text-indent: 40px; display: flex; box-sizing: border-box}
+            #column{align-content: center; flex: 50%; padding: 50px;}</style>
+    {% endblock %}
+    
     <!-- this html file is responsible for the main page -->
     <!-- in this main page you have the catalog on left hand side. on right hand side you have a column titled "Recent Items" which includes an ordered list of most recently added item to inventory-->
-    <title>Da Vinci's Art Tools Catalog</title>
     <body>
-        <div>
-            <h1>Da Vinci's Art Tools Catalog</h1>
-        </div>
         
         <h2>{{categories.category_name}}</h2>
             {# here I'm iterating through each category title#}
-            {%for c in categories%}
-
-        <div>
-        </br>
-            <p>{{c.category_name}}</p>
             
+        <div id="content">
+            {%block content%}
+            <div id="column">
+            <h2>Categories</h2> 
+            {%for c in categories%}
+        
+            <p>{{c.category_name}}</p> 
+        </br>
+            {% endfor %}
+            </div>
+
+            <div id="column">
+                <h2>Recent Items</h2>
+            </div>
+            {% endblock %}
         </div>
 
-        {% endfor %}
+        <!--<div id="items">
+            <h2>{{items.item_name}}</h2>
+            {%for i in items%}
+        </br>
+            <p>{{i.item_name}}</p>
+        </div> 
+
+        {% endfor %} -->
+        
+        
     </body>
 </html>
