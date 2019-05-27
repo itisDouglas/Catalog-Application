@@ -14,28 +14,12 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-# @app.route('/hello/')
-# @app.route('/hello/<name>')
-# def helloWorld(name=None):
-#     return render_template('main.html', name=name)
-
 @app.route('/')
 @app.route('/categories/')
 def categoryMenu():
     categories = session.query(Category).all()
     items = session.query(Item).all()
     return render_template('main.html',categories=categories, items=items)
-    #items = session.query(Item).all()
-    # output = ''
-    # for i in categories:
-    #     output += i.category_name
-    #     output += '</br>'
-    # return output
-    
-    
-    #return 'This displays my entire menu of art tools'
-    # category = session.query(Category).filter_by(id = category_id).first()
-    # return render_template('main.html', category_id = category_id)
 
 @app.route('/categories/<int:item_id>/item')
 def categoryItem(item_id):
