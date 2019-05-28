@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for, jsonify
 app = Flask(__name__)
 
 from sqlalchemy import create_engine
@@ -13,6 +13,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+#add JSON endpoints
 
 @app.route('/')
 @app.route('/categories/')
@@ -23,11 +24,16 @@ def categoryMenu():
 
 @app.route('/categories/<int:item_id>/item')
 def categoryItem(item_id):
-    return 'This page displays a list of specific items that are in that category %d' %item_id
+    categories = session.query(Category).all()
+    items = session.query(Item).filter_by(category_id=item_id)
+    return render_template('categoryitem.html', categories=categories, items=items, item_id=item_id)
+    
 
 @app.route('/categories/<int:item_id>/item/description')
 def categoryItemDescribe(item_id):
-    return 'This page will display the item plus a description that can be located by accessing the item.description field %d' %item_id
+    categories = session.query(Category).all()
+    items = session.query(Item).all()
+    return render_template('categoryItemDescription.html', categories=categories, items=items, item_id=item_id)
 
 @app.route('/categories/<int:item_id>/item/new')
 def categoryItemNew(item_id):

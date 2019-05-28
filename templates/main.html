@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-<!doctype html>
+<!DOCTYPE html>
 <html>
     {% block head %}
         {{ super() }}
@@ -20,7 +20,8 @@
             <h2>Categories</h2> 
             {%for c in categories%}
 
-            <p>{{c.category_name}}</p> 
+            
+            <p><a href="{{url_for('categoryItem', item_id=c.id)}}">{{c.category_name}}</a></p> 
         </br>
             {% endfor %}
             </div>
@@ -34,15 +35,6 @@
             </div>
             {% endblock %}
         </div>
-
-        <!--<div id="items">
-            <h2>{{items.item_name}}</h2>
-            {%for i in items%}
-        </br>
-            <p>{{i.item_name}}</p>
-        </div> 
-
-        {% endfor %} -->
         
         
     </body>
