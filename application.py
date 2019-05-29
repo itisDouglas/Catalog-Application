@@ -32,8 +32,9 @@ def categoryItem(item_id):
 @app.route('/categories/<int:item_id>/item/description')
 def categoryItemDescribe(item_id):
     categories = session.query(Category).all()
-    items = session.query(Item).all()
-    return render_template('categoryItemDescription.html', categories=categories, items=items, item_id=item_id)
+    items = session.query(Item).filter_by(id=item_id)
+    item_names = session.query(Item).filter_by(item_name=item_id)
+    return render_template('categoryItemDescription.html', categories=categories, items=items, item_id=item_id, item_names=item_names)
 
 @app.route('/categories/<int:item_id>/item/new')
 def categoryItemNew(item_id):

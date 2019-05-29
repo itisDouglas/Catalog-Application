@@ -6,7 +6,10 @@
     <style type="text/css"> #header {text-align: center; background-color: rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif}
         #footer{text-align: center; background-color:  rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif; }
         #content{ font-family: Arial, Helvetica, sans-serif; color: #4A4A4A; font-size: large; text-indent: 40px; display: flex; box-sizing: border-box; }
-        #column{ flex: 50%; padding: 50px;}</style>
+        #column{ flex: 50%; padding: 50px;}
+        #item_name{font-size: x-large; color: rgb(53, 117, 201); font-weight: bolder}
+    </style>
+        
         <div align="right"><button type="button" onclick="alert('Fart sound')">Login</button></div>
     {%endblock%}
     <!--this html file shows the category column along with specific item's description-->
@@ -29,8 +32,10 @@
                 <!--Right Column-->
                 <div id="column">
                     <h2>Item Description</h2>
-                    
-                    <p>{{items.description}}</p>
+                    {%for i in items|sort(attribute='description')%}
+                    <div id="item_name"><p>{{i.item_name}}</p></div>
+                    <p>{{i.description}}</p>
+                    {% endfor %}
                 </div>
                 {%endblock%}
             </div>
