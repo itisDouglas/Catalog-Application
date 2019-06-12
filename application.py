@@ -1,12 +1,29 @@
 #!/usr/bin/env python3
 import os
-from flask import Flask, render_template, url_for, jsonify
+from flask import Flask, render_template, url_for, jsonify, redirect, request
+from flask import session as login_session
+import random, string
+import hashlib
 app = Flask(__name__)
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item
 
+#oauth imports
+# from google.auth import credentials
+# from google_auth_oauthlib.flow import Flow
+# from google.auth.transport.requests import AuthorizedSession
+import google.auth.credentials
+import google_auth_oauthlib.flow
+import google.auth.transport.requests
+import json
+from flask import make_response
+import requests
+import httplib2
+
+CLIENT_SECRETS_FILE = "client_secret.json"
+SCOPES = 'https://www.googleapis.com/auth/userinfo.email'
 
 engine = create_engine('sqlite:///database_tables.db')
 Base.metadata.bind = engine
@@ -14,6 +31,65 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 #add JSON endpoints
+
+#creating a state token
+@app.route('/login')
+def showLogin():
+    #my CSRF token
+    state=hashlib.sha256(os.urandom(1024)).hexdigest()
+    #login_session holds my string value called "state"
+    login_session['state'] = state
+    return render_template('login.html', STATE=state)
+
+@app.route('/gconnect', methods=['POST'])
+def gconnect():
+    #RECEIVE auth_code BY HTTPS POST
+    #auth_code must be double checked with google API so we can receive the access tokens and id tokens
+    
+    #making sure the HTTP request received is validj
+    #request access incoming request data
+    if request.args.get('state') != login_session['state']:
+        #always include this json response
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    #auth_code must be sent back to google api
+    #that way we can get an access token, and all other tokens
+    auth_code = request.data
+
+    try:
+    #request.data contains incoming request data as string
+    #need to find out how to exchange with googleauth
+    #use credentials object to exchange auth code for access token
+
+        flow = Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+        flow.redirect_uri = "postmessage"
+        access_token = flow.fetch_token(auth_code)
+        credentials = credentials(access_token)
+
+    except Exception.with_traceback():
+        response = make_response(json.dumps('Failed to upgrade auth code.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+        #storing the user access and refresh token
+        login_session['credentials'] = {
+            'token' : credentials.token,
+            'refresh_token' : credentials.refresh_token,
+            'token_uri' : credentials.token_uri,
+            'client_id' : credentials.client_id,
+            'client_secret' : credentials.client_secret,
+            'scopes' : credentials.scopes
+        }
+        #check access token in credentials is valid
+        authed_session = AuthorizedSession(credentials)
+        #request adds credentials headers to the HTTP request and refershes credentials
+        result = authed_session.request('GET', 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' % access_token)
+        
+        if result.get('error') is not None:
+            response = make_response(json.dump(result.get('error')), 500)
+            response.headers['Content-Type'] = 'application/json'
+            return response
 
 @app.route('/')
 @app.route('/categories/')
