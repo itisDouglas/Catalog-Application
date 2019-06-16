@@ -1,82 +1,62 @@
 <!DOCTYPE html>
 <html>
     <head>
-            <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
-            </script>
-          
-          <script src="//apis.google.com/js/platform.js?onload=start"> </script>
-
-          <script>
-              function start(){
-                  gapi.load('auth2', function(){
-                      //this initializes google Auth object
-                      auth2 = gapi.auth2.init({
-                          //this is sent to google api to autehnticate
-                          client_id: '357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleusercontent.com',
-                          scope: 'openid email',
-                          redirect_uri: "postmessage",
-                          access_type: "offline",
-                          cookie_policy: "single_host_origin",
-                      });
-                  });
-              }
-          </script>
+        <script src="https://apis.google.com/js/platform.js" async defer></script> 
+        <meta name="google-signin-client_id" content="357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleusercontent.com">
+        <script>
+            function start(){
+                gapi.load('auth2', function(){
+                    //init google auth object
+                    auth2 = gapi.auth2.init({
+                        scope: 'openid email',
+                        ux_mode: redirect,
+                        redirect_uri: "http://localhost:8000/categories/",
+                        processData: false,
+                        access_type: "offline",
+                        cookie_policy: "single_host_origin"
+                    });
+                });
+                
+            }
+        </script>
     </head>
     <body>
-        <!--This is the google sign in button-->
-        <button id="signInButton">Sign In With Google</button>
+        <div class="g-signin2" data-onsuccess="onSignIn">
+            <!--code here for when sign in works
+        -->
         <script>
-            $('#signInButton').click(function(){
-                //signInCallback here
-                //this starts the one time code flow
-                auth2.grantOfflineAccess().then(signInCallBack);
-            });
+            function onSignIn(googleUser){
+                var profile = googleUser.getBasicProfile();
+                                console.log('ID: ' + profile.getID());
+                                console.log('Full Name: ' + profile.getName());
+                                console.log('Email: ' + profile.getEmail());
+                var id_token = googleUser.getAuthResponse().id_token;
+                console.log("ID Token: " + id_token);
+
+                var req = new XMLHttpRequest();
+                req.open('POST', 'http://localhost:8000/gconnect');
+                req.setRequestHeader('Content-Type', 'application/octet-stream; charset-utf-8');
+                req.onload = function(){
+                    console.log('Signed in as: ' + req.responseText);
+                };
+                req.send('idtoken=' + id_token);  
+            }
+            
+
         </script>
-        <!--<div id='signinButton'>
-            <span class ="g-signin2"
-            data-scope = "openid email"
-            data-clientid="357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleusercontent.com"
-            data-redirecturi="https://localhost:8000"
-            data-accesstype="offline"
-            data-cookiepolicy="single_host_origin"
-            data-callback="signInCallBack"
-            data-approvalprom="force">
-            </span>
-        </div> -->
-        <div id="result"></div>
+        </div>
+        
+        <!--call back method here-->
         <script>
-            function signInCallBack(authResult) {
-                if (authResult['code']) {
-                    //if you've been authorized, hide the sign-in button
-                    //this call back method handles response that google api sends back to the client(browser)
-                    $('#signinButton').attr('style', 'display: none');
-                    //sending auth code to the server
-                    //the server then needs to send 1 time code to google api
-                    $.ajax({
-                        type: 'POST',
-                        //posting to the server
-                        url: '/gconnect?state={{STATE}}',
-                        processData: false,
-                        contentType: 'application/octet-stream; charset-utf-8',
-                        data: authResult['code'],
-                        //this is what happens if success
-                        success: function(result) {
-                            if (result){
-                                $('#result').html('Login Success!</br>' + result + '</br>Redirecting...')
-                                setTimeout(function(){
-                                    window.location.href = '/categories/';
-                                }, 5000);
-                            } 
-                            else if (authResult['error']) {
-                                console.log('There is an error: ' + authResult['error']);
-                            } 
-                            
-                            else {
-                                $('#result').html("Failed to make a server-side call. Check configuration and console.");
-                            }
-                        }
-                    })
-                }
+        </script>
+        <a href="#" onclick="signOut();">Sign Out</a>
+        <!--signing out-->
+        <script>
+            function signOut() {
+                var auth2 = gapi.auth2.getAuthInstance();
+                auth2.signOut().then(function(){
+                    window.location.href='http://localhost:8000/categories/';
+                });
             }
         </script>
     </body>

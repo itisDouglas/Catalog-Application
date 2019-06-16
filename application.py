@@ -15,7 +15,8 @@ from database_setup import Base, Category, Item
 # from google_auth_oauthlib.flow import Flow
 # from google.auth.transport.requests import AuthorizedSession
 import google.auth.credentials
-import google_auth_oauthlib.flow
+from google.oauth2 import id_token
+from google_auth_oauthlib.flow import Flow
 import google.auth.transport.requests
 import json
 from flask import make_response
@@ -24,7 +25,9 @@ import httplib2
 
 CLIENT_SECRETS_FILE = "client_secret.json"
 SCOPES = 'https://www.googleapis.com/auth/userinfo.email'
+CLIENT_ID = '357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleusercontent.com'
 
+SECRET_KEY = app.secret_key = os.urandom(24)
 engine = create_engine('sqlite:///database_tables.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
@@ -48,6 +51,7 @@ def gconnect():
     
     #making sure the HTTP request received is validj
     #request access incoming request data
+    r = requests.Request()
     if request.args.get('state') != login_session['state']:
         #always include this json response
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -59,37 +63,57 @@ def gconnect():
     auth_code = request.data
 
     try:
-    #request.data contains incoming request data as string
-    #need to find out how to exchange with googleauth
-    #use credentials object to exchange auth code for access token
+        id_info = id_token.verify_oauth2_token(auth_code, r, CLIENT_ID)
 
-        flow = Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-        flow.redirect_uri = "postmessage"
-        access_token = flow.fetch_token(auth_code)
-        credentials = credentials(access_token)
+        if id_info['iss'] not in ['','']:
+            raise ValueError('Wrong Issuer')
 
-    except Exception.with_traceback():
-        response = make_response(json.dumps('Failed to upgrade auth code.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-        #storing the user access and refresh token
-        login_session['credentials'] = {
-            'token' : credentials.token,
-            'refresh_token' : credentials.refresh_token,
-            'token_uri' : credentials.token_uri,
-            'client_id' : credentials.client_id,
-            'client_secret' : credentials.client_secret,
-            'scopes' : credentials.scopes
-        }
-        #check access token in credentials is valid
-        authed_session = AuthorizedSession(credentials)
-        #request adds credentials headers to the HTTP request and refershes credentials
-        result = authed_session.request('GET', 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' % access_token)
+        user_id = id_info['sub']
+    except ValueError:
+        print("invalid token")
+        pass
+
+    #validate token id
+    #use tokeninfo endpoint
+    try:
+        requests.Request('POST', 'https://oauth2.googleapis.com/tokeninfo?id_token = id_token', "['Content Type'] = application/json")
+    except ValueError:
+        print("Invalid token id")
+
+
+
+    # try:
+    # #request.data contains incoming request data as string
+    # #need to find out how to exchange with googleauth
+    # #use credentials object to exchange auth code for access token
+
+    #     flow = Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+    #     flow.redirect_uri = "postmessage"
+    #     access_token = flow.fetch_token(auth_code)
+    #     credentials = credentials(access_token)
+
+    # except Exception.with_traceback():
+    #     response = make_response(json.dumps('Failed to upgrade auth code.'), 401)
+    #     response.headers['Content-Type'] = 'application/json'
+    #     return response
+    #     #storing the user access and refresh token
+    #     login_session['credentials'] = {
+    #         'token' : credentials.token,
+    #         'refresh_token' : credentials.refresh_token,
+    #         'token_uri' : credentials.token_uri,
+    #         'client_id' : credentials.client_id,
+    #         'client_secret' : credentials.client_secret,
+    #         'scopes' : credentials.scopes
+    #     }
+    #     #check access token in credentials is valid
+    #     authed_session = AuthorizedSession(credentials)
+    #     #request adds credentials headers to the HTTP request and refershes credentials
+    #     result = authed_session.request('GET', 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' % access_token)
         
-        if result.get('error') is not None:
-            response = make_response(json.dump(result.get('error')), 500)
-            response.headers['Content-Type'] = 'application/json'
-            return response
+    #     if result.get('error') is not None:
+    #         response = make_response(json.dump(result.get('error')), 500)
+    #         response.headers['Content-Type'] = 'application/json'
+    #         return response
 
 @app.route('/')
 @app.route('/categories/')
