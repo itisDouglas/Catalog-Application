@@ -8,16 +8,15 @@ app = Flask(__name__)
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 from database_setup import Base, Category, Item
 
-#oauth imports
-# from google.auth import credentials
-# from google_auth_oauthlib.flow import Flow
-# from google.auth.transport.requests import AuthorizedSession
-import google.auth.credentials
+
+from google.auth import credentials
+from google.oauth2 import credentials
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
-import google.auth.transport.requests
+from google.auth.transport.requests import AuthorizedSession
 import json
 from flask import make_response
 import requests
@@ -30,8 +29,11 @@ CLIENT_ID = '357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleuserconten
 SECRET_KEY = app.secret_key = os.urandom(24)
 engine = create_engine('sqlite:///database_tables.db')
 Base.metadata.bind = engine
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+# DBSession = sessionmaker(bind=engine)
+# session = DBSession()
+session_factory = sessionmaker(bind=engine)
+Session = scoped_session(session_factory)
+Session()
 
 #add JSON endpoints
 
@@ -44,7 +46,7 @@ def showLogin():
     login_session['state'] = state
     return render_template('login.html', STATE=state)
 
-@app.route('/gconnect', methods=['POST'])
+@app.route('/gconnect', methods=['GET','POST'])
 def gconnect():
     #RECEIVE auth_code BY HTTPS POST
     #auth_code must be double checked with google API so we can receive the access tokens and id tokens
@@ -63,22 +65,28 @@ def gconnect():
     auth_code = request.data
 
     try:
-        id_info = id_token.verify_oauth2_token(auth_code, r, CLIENT_ID)
+        id_info = id_token.verify_oauth2_token(auth_code, r, SCOPES)
 
-        if id_info['iss'] not in ['','']:
+        if id_info['iss'] != 'https://accounts.google.com':
             raise ValueError('Wrong Issuer')
 
-        user_id = id_info['sub']
+        user_id = id_info['sub']   
     except ValueError:
         print("invalid token")
         pass
 
-    #validate token id
-    #use tokeninfo endpoint
-    try:
-        requests.Request('POST', 'https://oauth2.googleapis.com/tokeninfo?id_token = id_token', "['Content Type'] = application/json")
-    except ValueError:
-        print("Invalid token id")
+         
+
+        flow = Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES, redirect_uri ='/categories/', code=user_id)
+        token = flow.fetch_token()
+
+        #store token in a credentials object
+        cred = credentials.Credentials(token)
+        #send back to google api
+        authed_session = AuthorizedSession(cred)
+
+        response = authed_session.request('GET', 'https://oauth2.googleapis.com/tokeninfo?id_token=cred', "['Content-Type'] = 'application/json'")
+        return response.text()
 
 
 
@@ -118,31 +126,36 @@ def gconnect():
 @app.route('/')
 @app.route('/categories/')
 def categoryMenu():
-    categories = session.query(Category).all()
-    items = session.query(Item).all()
+    categories = Session.query(Category).all()
+    items = Session.query(Item).all()
     return render_template('main.html',categories=categories, items=items)
+    Session.remove()
 
 @app.route('/categories/<int:item_id>/item')
 def categoryItem(item_id):
-    categories = session.query(Category).all()
-    items = session.query(Item).filter_by(category_id=item_id)
+    categories = Session.query(Category).all()
+    items = Session.query(Item).filter_by(category_id=item_id)
     return render_template('categoryitem.html', categories=categories, items=items, item_id=item_id)
+    Session.remove()
     
 
 @app.route('/categories/<int:item_id>/item/description')
 def categoryItemDescribe(item_id):
-    categories = session.query(Category).all()
-    items = session.query(Item).filter_by(id=item_id)
-    item_names = session.query(Item).filter_by(item_name=item_id)
+    categories = Session.query(Category).all()
+    items = Session.query(Item).filter_by(id=item_id)
+    item_names = Session.query(Item).filter_by(item_name=item_id)
     return render_template('categoryItemDescription.html', categories=categories, items=items, item_id=item_id, item_names=item_names)
+    Session.remove()
 
-@app.route('/categories/<int:item_id>/item/new')
-def categoryItemNew(item_id):
-    return 'This page will allow an authorized user to add a new item within a category. %d' %item_id
+@app.route('/categories/item/new')
+def categoryItemNew(methods=['POST']):
+    categories = Session.query(Category).all()
+    return render_template('categoryItemNew.html', categories=categories)
+    Session.remove()
 
 @app.route('/categories/<int:item_id>/item/edit')
 def categoryItemEdit(item_id):
-    return 'This page will allow an authorized user to add a new item within a category. %d' %item_id
+    return 'This page will allow an authorized user to edit an item they added. %d' %item_id
 
 @app.route('/categories/<int:item_id>/item/delete')
 def categoryItemDel(item_id):

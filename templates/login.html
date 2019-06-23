@@ -10,10 +10,11 @@
                     auth2 = gapi.auth2.init({
                         scope: 'openid email',
                         ux_mode: redirect,
-                        redirect_uri: "http://localhost:8000/categories/",
+                        redirect_uri: "http://localhost:8000/gconnect",
                         processData: false,
+                        fetch_basic_profile: true,
                         access_type: "offline",
-                        cookie_policy: "single_host_origin"
+                        cookie_policy: "single_host_origin",
                     });
                 });
                 
@@ -27,28 +28,23 @@
         <script>
             function onSignIn(googleUser){
                 var profile = googleUser.getBasicProfile();
-                                console.log('ID: ' + profile.getID());
-                                console.log('Full Name: ' + profile.getName());
-                                console.log('Email: ' + profile.getEmail());
                 var id_token = googleUser.getAuthResponse().id_token;
-                console.log("ID Token: " + id_token);
 
                 var req = new XMLHttpRequest();
-                req.open('POST', 'http://localhost:8000/gconnect');
+                req.open('POST', 'http://localhost:8000/gconnect?state={{STATE}}');
                 req.setRequestHeader('Content-Type', 'application/octet-stream; charset-utf-8');
                 req.onload = function(){
                     console.log('Signed in as: ' + req.responseText);
                 };
                 req.send('idtoken=' + id_token);  
             }
-            
+
 
         </script>
         </div>
-        
-        <!--call back method here-->
         <script>
         </script>
+    </br>
         <a href="#" onclick="signOut();">Sign Out</a>
         <!--signing out-->
         <script>

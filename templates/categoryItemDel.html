@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+<!DOCTYPE html>
+<html>
+    {% block head %}
+        {{ super() }}
+        <style type="text/css"> #header {text-align: center; background-color: rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif}
+            #footer{text-align: center; background-color:  rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif; }
+            #content{ font-family: Arial, Helvetica, sans-serif; color: #4A4A4A; font-size: large; text-indent: 40px; display: flex; box-sizing: border-box; }
+            #column{ flex: 50%; padding: 50px;}
+            .button{background-color: rgb(53, 117, 201);
+                border: none;
+                color: white;
+                padding: 15px 25px;
+                text-align: center;
+                font-size: 16px;
+                cursor: pointer;
+                border-radius: 20px}</style>
+    {% endblock %}
+<body>
+    <!--ask if sure to delete and give submit button prompt sending info to database to delete-->
+
+    <h2>
+        Delete Item:
+    </h2>
+    <h4>Are you sure you want to delete?</h4>
+    <input id="button "type = "submit" formmethod="POST">
+</body>
+</html>

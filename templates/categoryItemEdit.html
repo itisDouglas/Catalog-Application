@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+<!DOCTYPE html>
+<html>
+    {% block head %}
+        {{ super() }}
+        <style type="text/css"> #header {text-align: center; background-color: rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif}
+            #footer{text-align: center; background-color:  rgb(53, 117, 201); color: white; font-family: Arial, Helvetica, sans-serif; }
+            #content{ font-family: Arial, Helvetica, sans-serif; color: #4A4A4A; font-size: large; text-indent: 40px; display: flex; box-sizing: border-box; }
+            #column{ flex: 50%; padding: 50px;}
+            #button{background-color: rgb(53, 117, 201);
+                border: none;
+                color: white;
+                padding: 15px 25px;
+                text-align: center;
+                font-size: 16px;
+                cursor: pointer;
+                border-radius: 20px}</style>
+    {% endblock %}
+    <body>
+        <!--This page will be in charge of allowing authorized user to select items from recently added to edit name, or delete-->
+        <h2>Edit Item:</h2>
+        <h4>Select Category first:</h4>
+        <select name="category">
+                {% for c in categories %}
+                <option value ="{{c.categories}}">{{c.categories}}</option>
+            {% endfor %}
+        </select>
+        <h4>Select Item:</h4>
+        <select name="item">
+            {% for i in items %}
+            <option value="{{i.items}}">{{i.items}}</option>
+            {% endfor %}
+        </select>
+        <input id="button "type = "submit" formmethod="GET">
+    </body>
+</html>

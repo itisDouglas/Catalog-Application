@@ -9,24 +9,23 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 class Category(Base):
-    __tablename__='category'
+    __tablename__="category"
     # defining Category table columns
     # this is my id column
     id = Column(Integer, primary_key=True)
-    categories = relationship("Item")
+    category_name = Column(String(50))
     # this is my category name column
     # holds up to 100 characters and MUST have a value
     # can't be null
-    category_name = Column(String(50), nullable=False)
+    categories = relationship("Item", back_populates="category")
 
 class Item(Base):
-    __tablename__='item'
+    __tablename__="item"
     id = Column(Integer, primary_key=True)
     item_name = Column(String(100), nullable=False)
     description = Column(String(500), nullable=False)
-    category_id = Column(Integer, ForeignKey('category.id'))
-
-    #category_id = relationship("Category", foreign_keys=[category_id_key])
+    category_id = Column(Integer, ForeignKey("category.id"))
+    category = relationship("Category", back_populates="categories")
 
 
 """ Instantiate create_engine object. Pass as argument the file name"""

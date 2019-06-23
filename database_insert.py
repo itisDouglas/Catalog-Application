@@ -1,12 +1,23 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 from database_setup import Base, Category, Item
 
 engine = create_engine('sqlite:///database_tables.db')
 Base.metadata.bind = engine
+# Session = scoped_session(sessionmaker(bind=engine))
+# Session()
+# session_factory = sessionmaker(bind=engine)
+# session = session_factory()
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+# Session = sessionmaker()
+# Session.bind = engine
+# session = scoped_session(Session())
+
+session_factory = sessionmaker(bind=engine)
+Session = scoped_session(session_factory)
+session = Session()
+
 
 #insert statements here
 #Insert Category first
@@ -128,4 +139,12 @@ session.commit()
 
 manga_book = Item(id = 18, item_name = "Tatsunoko Character Design", description = "Want to learn how to design sci-fi characters for comics, manga, anime? Learn by observing the different characters developed by Tatsunoko, a global production company of anime that brought the world Speed Racer.", category_id = 9)
 session.add(manga_book)
+session.commit()
+
+oil_pastels = Item(id = 19, item_name ="Basic Oil Pastels", description = "Want to draw with pastel? Try these basic oil pastels that come in an arrangement of 6 pastels per box.", category_id = 10)
+session.add(oil_pastels)
+session.commit()
+
+chalk_pastels = Item(id = 20, item_name = 'Chalk Pastels', description = "Want to try pastels but with less of the stickiness of oil pastels? Try these chalk pastels!", category_id = 10)
+session.add(chalk_pastels)
 session.commit()
