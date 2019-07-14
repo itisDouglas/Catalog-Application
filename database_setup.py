@@ -19,6 +19,14 @@ class Category(Base):
     # can't be null
     categories = relationship("Item", back_populates="category")
 
+    @property
+    def serialize(self):
+        return
+        {
+            'category_name': self.category_name,
+            'id': self.id,
+        }
+
 class Item(Base):
     __tablename__="item"
     id = Column(Integer, primary_key=True)
@@ -26,6 +34,23 @@ class Item(Base):
     description = Column(String(500), nullable=False)
     category_id = Column(Integer, ForeignKey("category.id"))
     category = relationship("Category", back_populates="categories")
+
+    @property
+    def serialize(self):
+        return{
+            'item_name': self.item_name,
+            'description': self.description,
+            'id': self.id,
+        }
+
+#creating local permission for user here
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(200), nullable=False)
+    email = Column(String(200), nullable=False)
+    sub = Column(String(500), nullable=False)
 
 
 """ Instantiate create_engine object. Pass as argument the file name"""

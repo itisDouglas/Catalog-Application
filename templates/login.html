@@ -1,59 +1,82 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <script src="https://apis.google.com/js/platform.js" async defer></script> 
-        <meta name="google-signin-client_id" content="357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleusercontent.com">
-        <script>
-            function start(){
-                gapi.load('auth2', function(){
-                    //init google auth object
-                    auth2 = gapi.auth2.init({
-                        scope: 'openid email',
-                        ux_mode: redirect,
-                        redirect_uri: "http://localhost:8000/gconnect",
-                        processData: false,
-                        fetch_basic_profile: true,
-                        access_type: "offline",
-                        cookie_policy: "single_host_origin",
-                    });
+<html itemscope itemtype="http://schema.org/Article">
+<head>
+    <!--Prerequisites-->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
+    </script>
+    <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
+    <!--Done with prerequisites-->
+    <!--initialize googleauth object-->
+    <script>
+        function start(){
+            gapi.load('auth2', function(){
+                auth2 = gapi.auth2.init({
+                    //scopes go here
+                    client_id: '357027840207-p8tmt9tpe4t9icdh37ftuo0daijl4u9u.apps.googleusercontent.com',
+                    scope: 'openid email',
+                    ux_mode: redirect,
+                    redirect_uris: "http://localhost:8000",
+                    processData: false,
+                    fetch_basic_profile: true,
+                    access_type: "offline",
+                    cookie_policy: "single_host_origin",
+
                 });
-                
-            }
-        </script>
-    </head>
-    <body>
-        <div class="g-signin2" data-onsuccess="onSignIn">
-            <!--code here for when sign in works
-        -->
-        <script>
-            function onSignIn(googleUser){
-                var profile = googleUser.getBasicProfile();
-                var id_token = googleUser.getAuthResponse().id_token;
+            });
+        }
+    </script>
+</head>
+<body>
+<!--adding sign in button-->
+<button id="signinButton">Sign in with Google</button>
+<script>
+    $('#signinButton').click(function(){
+        //signin call back here
+        //below, grantOfflineAccess starts one time code flow
+        //grantofflineaccess method receives a JSON object with an authorization code
+        //this authorization code has to be sent to the server
+        //in the JSON object, it's a keyword called 'code'
+        auth2.grantOfflineAccess().then(signInCallback);
+    });
+</script>
 
-                var req = new XMLHttpRequest();
-                req.open('POST', 'http://localhost:8000/gconnect?state={{STATE}}');
-                req.setRequestHeader('Content-Type', 'application/octet-stream; charset-utf-8');
-                req.onload = function(){
-                    console.log('Signed in as: ' + req.responseText);
-                };
-                req.send('idtoken=' + id_token);  
-            }
+<script>
+    function signInCallback(authResult){
+        if (authResult['code']){
+            //hide sign in button
+            $('#signinButton').attr('style', 'display: non');
 
+            //sending code to the server
+            //using ajax to do it since ajax talks to server
+            $.ajax({
+                type: 'POST',
+                url: '/gconnect?state={{STATE}}',
+                //include 'X-Requested-With' header to protect against csrf attacks
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function(result){
+                    //handle or verify server response
+                    if (result){
+                        $('#result').html('Login successful!</br>' + result + '</br>Redirecting...')
+                        setTimeout(function(){
+                            window.location.href = '/categories';
+                        }, 3000);
+                    }
+                },
+                processData: false,
+                data: authResult['code']
+            });
+        }
+        else if (authResult['error']){
+            //handle error
+            console.log('Error ' + authResult['error']);
 
-        </script>
-        </div>
-        <script>
-        </script>
-    </br>
-        <a href="#" onclick="signOut();">Sign Out</a>
-        <!--signing out-->
-        <script>
-            function signOut() {
-                var auth2 = gapi.auth2.getAuthInstance();
-                auth2.signOut().then(function(){
-                    window.location.href='http://localhost:8000/categories/';
-                });
-            }
-        </script>
-    </body>
+        }
+        else{
+            $('#result').html('Failed to make server-side call.');
+        }
+    }
+</script>
+</body>
 </html>
